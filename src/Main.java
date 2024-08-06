@@ -116,11 +116,15 @@ public class Main {
 
     private static void drawBoard(char[][] board) {
         System.out.println("\n-------------");
-        System.out.printf("| %s | %s | %s |%n", board[0][0], board[0][1], board[0][2]);
-        System.out.println("|---+---+---|");
-        System.out.printf("| %s | %s | %s |%n", board[1][0], board[1][1], board[1][2]);
-        System.out.println("|---+---+---|");
-        System.out.printf("| %s | %s | %s |%n", board[2][0], board[2][1], board[2][2]);
+
+        for (int i = 0; i < board.length; i++) {
+            System.out.printf("| %s | %s | %s |%n", board[i][0], board[i][1], board[i][2]);
+            if (i < board.length - 1) {
+                System.out.println("|---+---+---|");
+            }
+        }
+
+
         System.out.println("-------------");
     }
 
