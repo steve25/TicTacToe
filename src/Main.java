@@ -1,4 +1,4 @@
-import java.util.*;
+import java.util.Scanner;
 
 public class Main {
     public static final String RESET = "\033[0m";
@@ -6,76 +6,45 @@ public class Main {
     public static final String YELLOW = "\033[0;33m";
     public static final String BLUE = "\033[0;34m";
 
-    private static final Map<Integer, String> board = new HashMap<>() {{
-        put(1, " ");
-        put(2, " ");
-        put(3, " ");
-        put(4, " ");
-        put(5, " ");
-        put(6, " ");
-        put(7, " ");
-        put(8, " ");
-        put(9, " ");
-    }};
-
-    private static final Set<Integer[]> winningNumbers = new HashSet<>() {{
-        add(new Integer[]{1, 2, 3});
-        add(new Integer[]{4, 5, 6});
-        add(new Integer[]{7, 8, 9});
-        add(new Integer[]{1, 4, 7});
-        add(new Integer[]{2, 5, 8});
-        add(new Integer[]{3, 6, 9});
-        add(new Integer[]{1, 5, 9});
-        add(new Integer[]{3, 5, 7});
-    }};
 
     public static void main(String[] args) {
+        char[][] board = initBoard();
+
+        char currentPlayer = 'o';
 
         while (true) {
-            if (getTurn("o"))
+            drawBoard(board);
+            getTurn(currentPlayer, board);
+
+            if (checkWin(currentPlayer, board)) {
+                drawBoard(board);
+                String color = currentPlayer == 'o' ? YELLOW : BLUE;
+                System.out.println("\n" + GREEN + "Player " + color + currentPlayer + GREEN + " wins!" + RESET);
                 break;
-            if (getTurn("x"))
+            }
+
+            if (checkDraw(board)) {
+                drawBoard(board);
+                System.out.println("\nIts a draw");
                 break;
-        }
-    }
-
-    private static boolean getTurn(String player) {
-        drawBoard();
-
-        String color = player.equals("o") ? YELLOW : BLUE;
-
-        int input = getInput("Player " + player);
-        board.put(input, player);
-
-        if (checkWin(player)) {
-            drawBoard();
-            System.out.println("\n" + GREEN + "Player " + color + player + GREEN + " wins!" + RESET);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean checkWin(String player) {
-        Set<Integer> results = new HashSet<>();
-
-        for (Map.Entry<Integer, String> entry : board.entrySet()) {
-            if (entry.getValue().contains(player)) {
-                results.add(entry.getKey());
             }
-        }
 
-        for (Integer[] i : winningNumbers) {
-            if (results.containsAll(Arrays.asList(i))) {
-                return true;
-            }
+            currentPlayer = switchPlayer(currentPlayer);
         }
-
-        return false;
     }
 
+    private static char switchPlayer(char currentPlayer) {
+        return currentPlayer == 'o' ? 'x' : 'o';
+    }
 
-    private static int getInput(String player) {
+    private static void getTurn(char player, char[][] board) {
+
+        int input = getInput("Player " + player, board);
+
+        addToBoard(input, player, board);
+    }
+
+    private static int getInput(String player, char[][] board) {
         Scanner sc = new Scanner(System.in);
         int result;
 
@@ -88,7 +57,9 @@ public class Main {
             try {
                 result = Integer.parseInt(input);
 
-                if (result >= 1 && result <= 9 && !board.get(result).equals(" ")) {
+                int[] cords = numberToBoardCord(result);
+
+                if (result >= 1 && result <= 9 && board[cords[0]][cords[1]] != ' ') {
                     System.err.print("Invalid move. Square already occupied. Please choose another: ");
                     continue;
                 }
@@ -106,13 +77,60 @@ public class Main {
         }
     }
 
-    private static void drawBoard() {
+
+    private static boolean checkWin(char player, char[][] board) {
+
+        for (int i = 0; i < 3; i++) {
+            if ((board[i][0] == player && board[i][1] == player && board[i][2] == player) ||
+                    (board[0][i] == player && board[1][i] == player && board[2][i] == player)) {
+                return true;
+            }
+        }
+
+        return (board[0][0] == player && board[1][1] == player && board[2][2] == player) ||
+                (board[0][2] == player && board[1][1] == player && board[2][0] == player);
+    }
+
+    private static boolean checkDraw(char[][] board) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static char[][] initBoard() {
+        char[][] board = new char[3][3];
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                board[i][j] = ' ';
+            }
+        }
+
+        return board;
+    }
+
+    private static void drawBoard(char[][] board) {
         System.out.println("\n-------------");
-        System.out.printf("| %s | %s | %s |%n", board.get(1), board.get(2), board.get(3));
+        System.out.printf("| %s | %s | %s |%n", board[0][0], board[0][1], board[0][2]);
         System.out.println("|---+---+---|");
-        System.out.printf("| %s | %s | %s |%n", board.get(4), board.get(5), board.get(6));
+        System.out.printf("| %s | %s | %s |%n", board[1][0], board[1][1], board[1][2]);
         System.out.println("|---+---+---|");
-        System.out.printf("| %s | %s | %s |%n", board.get(7), board.get(8), board.get(9));
+        System.out.printf("| %s | %s | %s |%n", board[2][0], board[2][1], board[2][2]);
         System.out.println("-------------");
+    }
+
+    public static int[] numberToBoardCord(int number) {
+        number--;
+        return new int[]{number / 3, number % 3};
+    }
+
+    private static void addToBoard(int input, char player, char[][] board) {
+        int[] cords = numberToBoardCord(input);
+        board[cords[0]][cords[1]] = player;
     }
 }
